@@ -1,12 +1,12 @@
-# Use official OpenJDK base image
-FROM openjdk:17
-
-# Set environment variable for working directory
+# Start with Maven to build the JAR
+FROM maven:3.9.4-eclipse-temurin-17 AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean install -DskipTests
 
-# Copy the JAR file into the container
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
-
-# Run the application
+# Now use JDK only for running the built app
+FROM openjdk:17
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
